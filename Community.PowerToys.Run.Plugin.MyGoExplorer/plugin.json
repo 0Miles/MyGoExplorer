@@ -1,0 +1,14 @@
+{
+    "ID": "4C1BF5784285489BA6BFC92AE0641AAE",
+    "ActionKeyword": "mygo:",
+    "IsGlobal": false,
+    "Name": "MyGoExplorer",
+    "Author": "Miles",
+    "Version": "1.0.0",
+    "Language": "csharp",
+    "Website": "https://yourwebsite.com",
+    "IcoPathDark": "Images\\MyGoExplorer.dark.png",
+    "IcoPathLight": "Images\\MyGoExplorer.light.png",
+    "ExecuteFileName": "Community.PowerToys.Run.Plugin.MyGoExplorer.dll",
+    "DynamicLoading": false
+}

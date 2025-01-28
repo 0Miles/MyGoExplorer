@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+		<WindowsSdkPackageVersion>10.0.20348.38</WindowsSdkPackageVersion>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<RootNamespace>Community.PowerToys.Run.Plugin.MyGoExplorer</RootNamespace>
+		<AssemblyName>Community.PowerToys.Run.Plugin.MyGoExplorer</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="plugin.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="MyGoLines.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+	  <Reference Include="Wox.Plugin">
+	    <HintPath>Libs\Wox.Plugin.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Images\MyGoExplorer.dark.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\MyGoExplorer.light.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+</Project>
