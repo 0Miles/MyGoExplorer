@@ -1,16 +1,21 @@
 # PowerToys Run: MyGo Explorer
-一款 PowerToys Run 插件，用於快速搜尋 MyGO!!!!! 與 Ave Mujica 相關台詞並下載圖片至剪貼簿  
+一款 PowerToys Run 擴充元件，用於快速搜尋 MyGO!!!!! 與 Ave Mujica 相關台詞並下載圖片至剪貼簿  
+  
 ![demo](docs/mygoexplorer.gif)
 
+## PowerToys
+[PowerToys](https://github.com/microsoft/PowerToys) 是由 Microsoft 開發的開源 Windows 工具集合，PowerToys Run 是其中的一個快速啟動器，可以讓使用者透過快捷鍵 (`Alt + Space`) 來快速搜尋應用程式、文件及執行其他功能
+
 ## 安裝
-1. 下載已建置的擴充元件 zip 檔後解壓縮：  
+1. 確保已安裝 [PowerToys](https://github.com/microsoft/PowerToys) 並啟用 PowerToys Run。
+2. 下載已建置的擴充元件 zip 檔後解壓縮：  
    [GitHub Releases](https://github.com/0miles/MyGoExplorer/releases)
-2. 關閉 PowerToys
-3. 將解壓縮後的 `Community.PowerToys.Run.Plugin.MyGoExplorer` 資料夾放入：
+3. 關閉 PowerToys
+4. 將解壓縮後的 `Community.PowerToys.Run.Plugin.MyGoExplorer` 資料夾放入：
    ```
    %LOCALAPPDATA%\Microsoft\PowerToys\PowerToys Run\Plugins\
    ```
-4. 開啟 PowerToys
+5. 開啟 PowerToys
 
 
 ## 使用方法
