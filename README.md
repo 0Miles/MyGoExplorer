@@ -37,8 +37,8 @@
 - 如果圖片已存在，則不會重新下載
 
 ## Credits
-- 使用了 [hydra00400](https://home.gamer.com.tw/profile/index.php?&owner=hydra00400) 的台詞資料庫與 anon-tokyo API  
+- 使用了 [VirtualDruid](https://github.com/VirtualDruid) 的台詞資料庫與 anon-tokyo API  
     https://forum.gamer.com.tw/C.php?bsn=60076&snA=8289364  
 
-- 使用了 [yichen._.0403(宋逸晨)](https://www.threads.net/@yichen._.0403) 的 Tomorin API  
+- 使用了 [eason102](https://github.com/eason102) 的 Tomorin API  
     https://www.threads.net/@yichen._.0403/post/DFj6WZACF2j
