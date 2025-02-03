@@ -1,5 +1,5 @@
 # PowerToys Run: MyGo Explorer
-一款 PowerToys Run 插件，用於快速搜尋 MyGo 相關台詞並下載圖片至剪貼簿  
+一款 PowerToys Run 插件，用於快速搜尋 MyGO!!!!! 與 Ave Mujica 相關台詞並下載圖片至剪貼簿  
 ![demo](docs/mygoexplorer.gif)
 
 ## 安裝
@@ -32,5 +32,8 @@
 - 如果圖片已存在，則不會重新下載
 
 ## Credits
-- 使用了 hydra00400 的台詞資料庫與 anon-tokyo API  
-https://forum.gamer.com.tw/C.php?bsn=60076&snA=8289364
+- 使用了 [hydra00400](https://home.gamer.com.tw/profile/index.php?&owner=hydra00400) 的台詞資料庫與 anon-tokyo API  
+    https://forum.gamer.com.tw/C.php?bsn=60076&snA=8289364  
+
+- 使用了 [yichen._.0403(宋逸晨)](https://www.threads.net/@yichen._.0403) 的 Tomorin API  
+    https://www.threads.net/@yichen._.0403/post/DFj6WZACF2j

@@ -1,10 +1,7 @@
-﻿using System.Drawing;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using Wox.Plugin;
-using System.Windows.Forms;
-using System.IO;
-using System.Net.Http;
+using Community.PowerToys.Run.Plugin.MyGoExplorer.Models;
+using System.Collections.Concurrent;
 
 namespace Community.PowerToys.Run.Plugin.MyGoExplorer
 {
@@ -13,6 +10,8 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
     {
         private PluginInitContext? _context;
         private List<MyGoLine>? _myGoLines;
+
+        private readonly ConcurrentDictionary<string, List<Result>> _cache = new();
 
         public string Name => "MyGo Explorer";
         public string Description => "搜尋 MyGo 台詞並複製圖片到剪貼簿";
@@ -43,54 +42,112 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
 
         public List<Result> Query(Query query)
         {
-            var keyword = query.Search;
+            string keyword = query.Search;
 
-            if (string.IsNullOrEmpty(keyword))
+            if (string.IsNullOrWhiteSpace(keyword))
             {
                 return new List<Result>
                 {
                     new Result
                     {
-                        Title = "請輸入關鍵字以搜尋 MyGo 台詞",
-                        SubTitle = "例如：輸入 '示例台詞'",
-                        IcoPath = "Images/plugin.png"
+                        Title = "請輸入關鍵字以搜尋 MyGO!!!!! 或 Ave Mujica 台詞",
+                        SubTitle = "例如：輸入 '示例台詞'"
                     }
                 };
             }
 
-            var results = _myGoLines
-                ?.FindAll(x => x.Text?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false)
-                .ConvertAll(x => new Result
+            return QueryResults(keyword.Trim()).GetAwaiter().GetResult();
+        }
+
+        private async Task<List<Result>> QueryResults(string keyword)
+        {
+            List<Result> mujicaResults = await QueryTomorinApi(keyword);
+
+            List<Result> mygoResults = _myGoLines
+                ?.Where(x => x.Text?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false)
+                .Select(x => new Result
                 {
                     Title = x.Text,
-                    SubTitle = $"Episode: {x.Episode}, Frame: {x.FrameStart}",
-                    IcoPath = $"https://cdn.anon-tokyo.com/thumb/thumb/{x.Episode}__{x.FrameStart}.jpg",
+                    SubTitle = $"MyGO!!!!! Episode: {x.Episode}, Frames: {x.FrameStart}-{x.FrameEnd}",
                     Action = _ =>
                     {
-                        HandleResultAction(x);
+                        HandleMyGoResultAction(x);
                         return true;
                     }
-                });
+                })
+                .ToList() ?? new List<Result>();
 
-            if (results?.Count == 0)
+            List<Result> results = [.. mygoResults, .. mujicaResults];
+
+            if (results.Count == 0)
             {
                 return new List<Result>
                 {
                     new Result
                     {
                         Title = "未找到相關結果",
-                        SubTitle = "請嘗試輸入其他關鍵字",
-                        IcoPath = "Images/error.png"
+                        SubTitle = "請嘗試輸入其他關鍵字"
                     }
                 };
             }
-
-            return results ?? new List<Result>();
+            return results;
         }
 
-        private async void HandleResultAction(MyGoLine selectedLine)
+        private async Task<List<Result>> QueryTomorinApi(string keyword)
+        {
+            try
+            {
+                var query = $"keyword={Uri.EscapeDataString(keyword)}";
+
+                using var client = new HttpClient();
+                var response = await client.GetAsync($"https://mygo-api.tomorin.cc/public-api/ave-search?{query}");
+                var ocrResults = new List<TomorinApiResult>();
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<TomorinApiResponse<TomorinApiResult>>(json);
+                    if (result != null)
+                        ocrResults = result.Data;
+                }
+                return ocrResults
+                    ?.Select(x => new Result
+                    {
+                        Title = x.Text ?? $"(出現角色:[{string.Join(", ", x.Characters.Select(x => x.Name))}])",
+                        SubTitle = $"Ave Mujica Episode: {x.Episode}, Frames: {x.FrameStart}-{x.FrameEnd}",
+                        Action = _ =>
+                        {
+                            HandleTomorinApiResultAction(x);
+                            return true;
+                        }
+                    })
+                    .ToList() ?? new List<Result>();
+            }
+            catch
+            {
+                return new List<Result>();
+            }
+        }
+
+        private async void HandleMyGoResultAction(MyGoLine selectedLine)
         {
             var imageUrl = $"https://anon-tokyo.com/image?frame={selectedLine.FrameStart}&episode={selectedLine.Episode}";
+            var imagePath = await DownloadImage(imageUrl);
+
+            if (!string.IsNullOrEmpty(imagePath))
+            {
+                using var image = Image.FromFile(imagePath);
+
+                Clipboard.SetImage(image);
+            }
+            else
+            {
+                _context?.API.ShowMsg("操作失敗", "下載圖片失敗，請檢查網路連線。");
+            }
+        }
+
+        private async void HandleTomorinApiResultAction(TomorinApiResult selectedResult)
+        {
+            var imageUrl = $"https://mygo-api.tomorin.cc/public-api/ave-frames?episode={selectedResult.Episode}&frame_start={selectedResult.FrameStart}&frame_end={selectedResult.FrameEnd}";
             var imagePath = await DownloadImage(imageUrl);
 
             if (!string.IsNullOrEmpty(imagePath))
@@ -143,29 +200,6 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
         private string GetImageFileName(string url)
         {
             return url.GetHashCode().ToString();
-        }
-
-        public class MyGoLinesData
-        {
-            [JsonPropertyName("result")]
-            public List<MyGoLine>? Result { get; set; }
-        }
-
-        public class MyGoLine
-        {
-            [JsonPropertyName("text")]
-            public string? Text { get; set; }
-
-            [JsonPropertyName("episode")]
-            public string? Episode { get; set; }
-
-            [JsonPropertyName("frame_start")]
-            public int? FrameStart { get; set; }            
-            [JsonPropertyName("frame_end")]
-            public int? FrameEnd { get; set; }
-            [JsonPropertyName("segment_id")]
-            public int? SegmentId { get; set; }
-
         }
     }
 }
