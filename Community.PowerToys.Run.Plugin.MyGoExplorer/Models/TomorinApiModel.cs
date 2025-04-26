@@ -36,6 +36,9 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer.Models
 
         [JsonPropertyName("characters")]
         public List<TomorinApiCharacter> Characters { get; set; }
+
+        [JsonPropertyName("source")]
+        public string Source { get; set; }
     }
 
     public class TomorinApiCharacter

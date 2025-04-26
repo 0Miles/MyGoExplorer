@@ -9,35 +9,17 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
     public class Main : IPlugin
     {
         private PluginInitContext? _context;
-        private List<MyGoLine>? _myGoLines;
 
         private readonly ConcurrentDictionary<string, List<Result>> _cache = new();
 
         public string Name => "MyGo Explorer";
-        public string Description => "搜尋 MyGo 台詞並複製圖片到剪貼簿";
+        public string Description => "搜尋 MyGO!!!!! 或 Ave Mujica 的台詞並複製圖片到剪貼簿";
         public static string PluginID => "4C1BF5784285489BA6BFC92AE0641AAE";
 
         public void Init(PluginInitContext context)
         {
             _context = context;
 
-            try
-            {
-                var jsonPath = Path.Combine(_context.CurrentPluginMetadata.PluginDirectory, "MyGoLines.json");
-                var jsonContent = File.ReadAllText(jsonPath);
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
-                _myGoLines = JsonSerializer.Deserialize<MyGoLinesData>(jsonContent, options)?.Result ?? new List<MyGoLine>();
-            }
-            catch (Exception ex)
-            {
-                _context.API.ShowMsg("錯誤", $"無法載入 MyGoLines 資料：{ex.Message}");
-                _myGoLines = new List<MyGoLine>();
-            }
         }
 
         public List<Result> Query(Query query)
@@ -51,7 +33,7 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
                     new Result
                     {
                         Title = "請輸入關鍵字以搜尋 MyGO!!!!! 或 Ave Mujica 台詞",
-                        SubTitle = "例如：輸入 '示例台詞'"
+                        SubTitle = "例如：輸入 '是又怎樣'"
                     }
                 };
             }
@@ -61,23 +43,7 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
 
         private async Task<List<Result>> QueryResults(string keyword)
         {
-            List<Result> mujicaResults = await QueryTomorinApi(keyword);
-
-            List<Result> mygoResults = _myGoLines
-                ?.Where(x => x.Text?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false)
-                .Select(x => new Result
-                {
-                    Title = x.Text,
-                    SubTitle = $"MyGO!!!!! Episode: {x.Episode}, Frames: {x.FrameStart}-{x.FrameEnd}",
-                    Action = _ =>
-                    {
-                        HandleMyGoResultAction(x);
-                        return true;
-                    }
-                })
-                .ToList() ?? new List<Result>();
-
-            List<Result> results = [.. mygoResults, .. mujicaResults];
+            List<Result> results = await QueryTomorinApi(keyword);
 
             if (results.Count == 0)
             {
@@ -97,10 +63,10 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
         {
             try
             {
-                var query = $"keyword={Uri.EscapeDataString(keyword)}";
+                var query = $"keyword={Uri.EscapeDataString(keyword)}&sources=mygo%2Cave";
 
                 using var client = new HttpClient();
-                var response = await client.GetAsync($"https://mygo-api.tomorin.cc/public-api/ave-search?{query}");
+                var response = await client.GetAsync($"https://api-3.tomorin.cc/api/search?{query}");
                 var ocrResults = new List<TomorinApiResult>();
                 if (response.IsSuccessStatusCode)
                 {
@@ -109,16 +75,23 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
                     if (result != null)
                         ocrResults = result.Data;
                 }
+
+                
+
                 return ocrResults
-                    ?.Select(x => new Result
+                    ?.Select(x =>
                     {
-                        Title = x.Text ?? $"(出現角色:[{string.Join(", ", x.Characters.Select(x => x.Name))}])",
-                        SubTitle = $"Ave Mujica Episode: {x.Episode}, Frames: {x.FrameStart}-{x.FrameEnd}",
-                        Action = _ =>
+                        var soruce = x.Source == "mygo" ? "MyGO!!!!!" : "Ave Mujica";
+                        return new Result
                         {
-                            HandleTomorinApiResultAction(x);
-                            return true;
-                        }
+                            Title = x.Text ?? $"(出現角色:[{string.Join(", ", x.Characters.Select(x => x.Name))}])",
+                            SubTitle = $"{soruce} Episode: {x.Episode}, Frames: {x.FrameStart}-{x.FrameEnd}",
+                            Action = _ =>
+                            {
+                                HandleTomorinApiResultAction(x);
+                                return true;
+                            }
+                        };
                     })
                     .ToList() ?? new List<Result>();
             }
@@ -128,26 +101,10 @@ namespace Community.PowerToys.Run.Plugin.MyGoExplorer
             }
         }
 
-        private async void HandleMyGoResultAction(MyGoLine selectedLine)
-        {
-            var imageUrl = $"https://anon-tokyo.com/image?frame={selectedLine.FrameStart}&episode={selectedLine.Episode}";
-            var imagePath = await DownloadImage(imageUrl);
-
-            if (!string.IsNullOrEmpty(imagePath))
-            {
-                using var image = Image.FromFile(imagePath);
-
-                Clipboard.SetImage(image);
-            }
-            else
-            {
-                _context?.API.ShowMsg("操作失敗", "下載圖片失敗，請檢查網路連線。");
-            }
-        }
-
         private async void HandleTomorinApiResultAction(TomorinApiResult selectedResult)
         {
-            var imageUrl = $"https://mygo-api.tomorin.cc/public-api/ave-frames?episode={selectedResult.Episode}&frame_start={selectedResult.FrameStart}&frame_end={selectedResult.FrameEnd}";
+            var frameSoruce = selectedResult.Source == "mygo" ? "frame" : "ave-frames";
+            var imageUrl = $"https://api-3.tomorin.cc/api/{frameSoruce}?episode={selectedResult.Episode}&frame_start={selectedResult.FrameStart}&frame_end={selectedResult.FrameEnd}";
             var imagePath = await DownloadImage(imageUrl);
 
             if (!string.IsNullOrEmpty(imagePath))

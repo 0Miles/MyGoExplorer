@@ -4,7 +4,7 @@
   "IsGlobal": false,
   "Name": "MyGoExplorer",
   "Author": "Miles",
-  "Version": "1.1.0",
+  "Version": "1.1.1",
   "Language": "csharp",
   "Website": "https://github.com/0Miles/MyGoExplorer",
   "IcoPathDark": "Images\\MyGoExplorer.dark.png",
